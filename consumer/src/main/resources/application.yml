@@ -1,0 +1,48 @@
+server:
+  port: 80
+
+spring:
+  application:
+    name: ConsumerServer  # 应用名称，在 Eureka 中作为 id 标识
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:8081/eureka
+  instance:
+    instance-id: consumer
+    prefer-ip-address: true
+    # Eureka Client 给 Eureka Server 发送心跳的时间间隔，默认 30 单位是 s
+    lease-renewal-interval-in-seconds: 1
+    # Eureka Server 最后一次收到心跳的等待上线，超时剔除服务，默认 90 单位是 s
+    lease-expiration-duration-in-seconds: 2
+
+
+ProviderServer:
+  ribbon:
+    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
+
+feign:
+  hystrix:
+    enabled: true
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+  compression:
+    request:
+      # 开启数据压缩请求
+      enabled: true
+      # 压缩数据类型
+      mime-types: text/xml, application/xml, application/json
+      # 数据压缩下限 2048 表示传输数据大于 2048 才会进行数据压缩(最小压缩值标准)
+      min-request-size: 2048
+    # 开启数据压缩响应
+    response:
+      enabled: true
+
+logging:
+  level:
+    # 以什么级别监控那个接口
+    com.software.feign: debug
