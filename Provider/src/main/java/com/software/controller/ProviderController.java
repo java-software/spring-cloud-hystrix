@@ -21,13 +21,22 @@ import javax.ws.rs.GET;
 public class ProviderController {
 
     @GetMapping("/get/{id}")
+    @HystrixCommand(fallbackMethod = "getFallBack", commandProperties = {
+            @HystrixProperty(name="circuitBreaker.enabled",value="true"),                   // 是否开启断路器
+            @HystrixProperty(name="circuitBreaker.requestVolumeThreshold",value="10"),     // 请求次数
+            @HystrixProperty(name="circuitBreaker.sleepWindowInMilliseconds",value="10000"),// 时间窗口期
+            @HystrixProperty(name="circuitBreaker.errorThresholdPercentage",value="60")    // 关效率达到 60% 后熔断
+    })
     public Object get(@PathVariable("id") Integer id) {
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+
+        if (1 == id) {
+            throw new  RuntimeException("id 不能为 1");
         }
         return Thread.currentThread().getName() + " --- 你已经消费了 --- " + id;
+    }
+
+    public Object getFallBack(Integer id) {
+        return Thread.currentThread().getName() + " --- 服务降级， id = " + id;
     }
 
 }
